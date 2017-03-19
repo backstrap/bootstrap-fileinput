@@ -38,6 +38,8 @@
         FRAMES: '.kv-preview-thumb',
         SORT_CSS: 'file-sortable',
         STYLE_SETTING: 'style="width:{width};height:{height};"',
+        // KDC - add styling for preview image.
+        STYLE_IMAGE: 'style="max-width:{max-width};max-height:{max-height};"',
         OBJECT_PARAMS: '<param name="controller" value="true" />\n' +
         '<param name="allowFullScreen" value="true" />\n' +
         '<param name="allowScriptAccess" value="always" />\n' +
@@ -81,7 +83,8 @@
             return Array.isArray(a) || Object.prototype.toString.call(a) === '[object Array]';
         },
         ifSet: function (needle, haystack, def) {
-            def = def || '';
+            // KDC - Fix issue with false getting turned into ''.
+            def = (typeof def === 'undefined' ? '' : def);
             return (haystack && typeof haystack === 'object' && needle in haystack) ? haystack[needle] : def;
         },
         cleanArray: function (arr) {
@@ -391,8 +394,10 @@
                 '     </div>\n' +
                 '</div>';
             tSize = ' <samp>({sizeText})</samp>';
+            // KDC - put size in separate div.
             tFooter = '<div class="file-thumbnail-footer">\n' +
-                '    <div class="file-footer-caption" title="{caption}">{caption}<br>{size}</div>\n' +
+                '    <div class="file-footer-caption" title="{caption}">{caption}' +
+                    '<div class="file-footer-caption-size">{size}</div></div>\n' +
                 '    {progress} {actions}\n' +
                 '</div>';
             tActions = '<div class="file-upload-indicator" title="{indicatorTitle}">{indicator}</div>\n' +
@@ -419,8 +424,9 @@
             tGeneric = '{content}\n';
             tHtml = '<div class="kv-preview-data file-preview-html" title="{caption}" ' + $h.STYLE_SETTING +
                 '>{data}</div>\n';
+            // KDC - use distinct styling for preview image.
             tImage = '<img src="{data}" class="file-preview-image kv-preview-data" title="{caption}" alt="{caption}" ' +
-                $h.STYLE_SETTING + '>\n';
+                $h.STYLE_IMAGE + '>\n';
             tText = '<textarea class="kv-preview-data file-preview-text" title="{caption}" readonly ' +
                 $h.STYLE_SETTING + '>{data}</textarea>\n';
             tVideo = '<video class="kv-preview-data file-preview-video" width="{width}" ' +
@@ -481,7 +487,8 @@
                 allowedPreviewTypes: ['image', 'html', 'text', 'video', 'audio', 'flash', 'pdf', 'object'],
                 previewTemplates: {},
                 previewSettings: {
-                    image: {width: "auto", height: "160px"},
+                    // KDC - Modified image size settings.
+                    image: {width: "auto", height: "80px", "max-width": "80px", "max-height": "80px"},
                     html: {width: "213px", height: "160px"},
                     text: {width: "213px", height: "160px"},
                     video: {width: "213px", height: "160px"},
@@ -746,15 +753,20 @@
                     var config = data.config[i], caption = $h.ifSet('caption', config), actions = '',
                         width = $h.ifSet('width', config, 'auto'), url = $h.ifSet('url', config, false),
                         key = $h.ifSet('key', config, null), fs = self.fileActionSettings,
-                        showDel = $h.ifSet('showDelete', config, true), showZoom = $h.ifSet('showZoom', config, fs.showZoom),
+                        // KDC - use showRemove instead of showDelete.
+                        showDel = $h.ifSet('showRemove', config, fs.showRemove), showZoom = $h.ifSet('showZoom', config, fs.showZoom),
                         showDrag = $h.ifSet('showDrag', config, fs.showDrag), disabled = (url === false) && isDisabled;
+                    // KDC - add indicator vars.
+                    var indicator = '', indicatorTitle = '';
                     if (self.initialPreviewShowDelete) {
                         actions = self._renderFileActions(false, showDel, showZoom, showDrag, disabled, url, key, true);
+                        indicator = fs.indicatorSuccess; //for previews, set the indicator to success
+                        indicatorTitle = fs.indicatorSuccessTitle; //title, too
                     }
                     return self._getLayoutTemplate('footer').replace(/\{progress}/g, self._renderThumbProgress())
                         .replace(/\{actions}/g, actions).replace(/\{caption}/g, caption)
                         .replace(/\{size}/g, self._getSize(size)).replace(/\{width}/g, width)
-                        .replace(/\{indicator}/g, '').replace(/\{indicatorTitle}/g, '');
+                        .replace(/\{indicator}/g, indicator).replace(/\{indicatorTitle}/g, indicatorTitle);
                 }
             };
             self.previewCache.init();
@@ -2790,7 +2802,8 @@
         },
         _initCaption: function () {
             var self = this, cap = self.initialCaption || '';
-            if (self.overwriteInitial || $h.isEmpty(cap)) {
+            // KDC removed condition to check self.overwriteInitial - overwriteInitial is for preview images.
+            if ($h.isEmpty(cap)) {
                 self.$caption.html('');
                 return false;
             }
