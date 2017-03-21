@@ -2272,6 +2272,8 @@
             var self = this, caption = self.slug(fname), prevContent, zoomContent = '',
                 config = self.previewSettings[cat] || self.defaults.previewSettings[cat],
                 w = config && config.width ? config.width : '', h = config && config.height ? config.height : '',
+                // KP add support for max-* style parms.
+                mw = config && config['max-width'] ? config['max-width'] : '', mh = config && config['max-height'] ? config['max-height'] : '',
                 footer = foot || self._renderFileFooter(caption, size, ($h.isEmpty(w) ? 'auto' : w), isError),
                 hasIconSetting = self._getPreviewIcon(fname),
                 forcePrevIcon = hasIconSetting && self.preferIconicPreview,
@@ -2292,6 +2294,8 @@
                     return tmplt.replace(/\{previewId}/g, id).replace(/\{caption}/g, caption)
                         .replace(/\{frameClass}/g, css).replace(/\{type}/g, ftype).replace(/\{fileindex}/g, ind)
                         .replace(/\{width}/g, w).replace(/\{height}/g, h)
+                        // KP add support for max-* style parms.
+                        .replace(/\{max-width}/g, mw).replace(/\{max-height}/g, mh)
                         .replace(/\{footer}/g, footer).replace(/\{data}/g, d).replace(/\{template}/g, templ || cat);
                 };
             ind = ind || previewId.slice(previewId.lastIndexOf('-') + 1);
