@@ -1,5 +1,5 @@
 {
-    "name": "bootstrap-fileinput",
+    "name": "@backstrap/bootstrap-fileinput",
     "version": "4.3.9",
     "homepage": "https://github.com/kartik-v/bootstrap-fileinput",
     "authors": [
